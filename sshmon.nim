@@ -1,9 +1,10 @@
-import osproc, streams, strutils
+import osproc, streams, strutils, strutils
 
-proc newSSH(user, host: string): Process =
-  return startProcess("/usr/bin/ssh", "/", [user & "@" & host, "/p/guardmons/shellmon"])
+proc newSSH*(user, host, sshPath, shellMonPath: string): Process =
+  return startProcess(sshPath, "/", [user & "@" & host, shellMonPath])
 
-proc runOutputCode(ssh: Process, command: string): (string, int) =
+proc runOutputCode*(ssh: Process, command: string): (string, int) =
+  let command = command.replace("\n", " ")
   var inputStream = ssh.inputStream()
   var outputStream = ssh.outputStream()
   inputStream.write(uint64 command.len)
@@ -12,18 +13,24 @@ proc runOutputCode(ssh: Process, command: string): (string, int) =
 
   result[1] = int outputStream.readUint64()
   let outputLen = int outputStream.readUint64()
+  assert outputLen < 100000
   result[0] = outputStream.readStr(outputLen)
 
-proc runOutput(ssh: Process, command: string): string =
+proc runOutput*(ssh: Process, command: string): string =
   let (output, code) = ssh.runOutputCode(command)
   if code != 0:
+    echo ">", command
+    echo output
     raise newException(ValueError, "Non zero code returned: " & $code)
   return output.strip()
 
-proc run(ssh: Process, command: string) =
+proc runIgnoreError*(ssh: Process, command: string) =
+  discard ssh.runOutputCode(command)
+
+proc run*(ssh: Process, command: string) =
   discard ssh.runOutput(command)
 
-proc readFileCode(ssh: Process, path: string): (string, int) =
+proc readFileCode*(ssh: Process, path: string): (string, int) =
   var inputStream = ssh.inputStream()
   var outputStream = ssh.outputStream()
   let command = "$$$read"
@@ -39,7 +46,7 @@ proc readFileCode(ssh: Process, path: string): (string, int) =
   result[0] = outputStream.readStr(outputLen)
 
 
-proc writeFileCode(ssh: Process, path: string, data: string): int =
+proc writeFileCode*(ssh: Process, path: string, data: string): int =
   var inputStream = ssh.inputStream()
   var outputStream = ssh.outputStream()
   let command = "$$$write"
@@ -56,25 +63,33 @@ proc writeFileCode(ssh: Process, path: string, data: string): int =
   return int outputStream.readUint64()
 
 
-proc readFile(ssh: Process, path: string): string =
+proc readFile*(ssh: Process, path: string): string =
   let (output, code) = ssh.readFileCode(path)
   if code != 0:
     raise newException(ValueError, "Non zero code returned: " & $code)
   return output
 
 
-proc writeFile(ssh: Process, path: string, data: string) =
+proc writeFile*(ssh: Process, path: string, data: string) =
   let code = ssh.writeFileCode(path, data)
   if code != 0:
     raise newException(ValueError, "Non zero code returned: " & $code)
 
 
-proc exit(ssh: Process) =
+proc copyFileTo*(ssh: Process, local, remote: string) =
+  ssh.writeFile(remote, readFile(local))
+
+
+proc copyFileFrom*(ssh: Process, remote, local: string) =
+  writeFile(local, ssh.readFile(remote))
+
+
+proc exit*(ssh: Process) =
   ssh.run("$$$exit")
 
 
 when isMainModule:
-  var ssh = newSSH("uesr", "localhost")
+  var ssh = newSSH("user", "localhost")
   echo ssh.runOutput("ls")
   echo ssh.runOutput("pwd")
   echo ssh.readFile("/p/guardmons/shellmon.nim")

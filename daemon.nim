@@ -1,0 +1,38 @@
+import osproc, os, posix
+
+# grab full command line
+var cmdLine = ""
+for i in 0..paramCount():
+  if i == 0: continue
+  if i > 1: cmdLine.add " "
+  cmdLine.add paramStr(i)
+
+# fork
+let pid = posix.fork()
+if pid < 0:
+  quit(QuitFailure)
+if pid > 0:
+  quit(QuitSuccess)
+
+# set the mask
+discard posix.umask(0)
+
+# set sid
+let sid = posix.setsid()
+if sid < 0:
+  quit(QuitFailure)
+
+# set cwd
+setCurrentDir("/")
+
+# set signals
+posix.signal(SIGCHLD, SIG_IGN)
+
+# close handles
+stdout.close()
+stdin.close()
+stderr.close()
+
+while true:
+  discard execCmd(cmdLine)
+  sleep(1000)
