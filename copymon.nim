@@ -15,6 +15,7 @@ var
 proc watchDirOrFile(pattern: string) =
   for fileName in walkPattern(pattern):
     if existsFile(fileName):
+      echo "* init ", fileName
       watching[fileName] = 0
     else:
       quit("Can't watch " & fileName & " does not exist.")
