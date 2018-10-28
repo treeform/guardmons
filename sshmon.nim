@@ -1,10 +1,11 @@
-import osproc, streams, strutils
+import osproc, streams, strutils, strutils
 
-proc newSSH*(user, host, sshPath, shellmonPath: string): Process =
-  return startProcess(sshPath, "/", [user & "@" & host, shellmonPath])
+proc newSSH*(user, host, sshPath, shellMonPath: string): Process =
+  return startProcess(sshPath, "/", [user & "@" & host, shellMonPath])
 
 proc runOutputCode*(ssh: Process, command: string): (string, int) =
   assert ssh != nil
+  let command = command.replace("\n", " ")
   var inputStream = ssh.inputStream()
   var outputStream = ssh.outputStream()
   inputStream.write(uint64 command.len)
@@ -19,9 +20,13 @@ proc runOutputCode*(ssh: Process, command: string): (string, int) =
 proc runOutput*(ssh: Process, command: string): string =
   let (output, code) = ssh.runOutputCode(command)
   if code != 0:
+    echo ">", command
     echo output
     raise newException(ValueError, "Non zero code returned: " & $code)
   return output.strip()
+
+proc runIgnoreError*(ssh: Process, command: string) =
+  discard ssh.runOutputCode(command)
 
 proc run*(ssh: Process, command: string) =
   discard ssh.runOutput(command)
@@ -72,12 +77,20 @@ proc writeFile*(ssh: Process, path: string, data: string) =
     raise newException(ValueError, "Non zero code returned: " & $code)
 
 
+proc copyFileTo*(ssh: Process, local, remote: string) =
+  ssh.writeFile(remote, readFile(local))
+
+
+proc copyFileFrom*(ssh: Process, remote, local: string) =
+  writeFile(local, ssh.readFile(remote))
+
+
 proc exit*(ssh: Process) =
   ssh.run("$$$exit")
 
 
 when isMainModule:
-  var ssh = newSSH("uesr", "localhost", "shellmon")
+  var ssh = newSSH("user", "localhost", "ssh", "shellmon")
   echo ssh.runOutput("ls")
   echo ssh.runOutput("pwd")
   echo ssh.readFile("/p/guardmons/shellmon.nim")
