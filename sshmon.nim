@@ -1,7 +1,12 @@
-import osproc, streams, strutils, strutils
+import osproc, streams, strutils, strutils, os
 
-proc newSSH*(user, host, sshPath, shellMonPath: string): Process =
-  return startProcess(sshPath, "/", [user & "@" & host, shellMonPath])
+proc newSSH*(user, host, sshPath, shellMonPath, sshKey: string): Process =
+  assert existsFile(sshKey)
+  return startProcess(sshPath, "/", [
+    "-i", sshKey,
+    user & "@" & host,
+    shellMonPath
+  ])
 
 proc runOutputCode*(ssh: Process, command: string): (string, int) =
   let command = command.replace("\n", " ")
