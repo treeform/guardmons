@@ -9,6 +9,7 @@ proc newSSH*(user, host, sshPath, shellMonPath, sshKey: string): Process =
   ])
 
 proc runOutputCode*(ssh: Process, command: string): (string, int) =
+  assert ssh != nil
   let command = command.replace("\n", " ")
   var inputStream = ssh.inputStream()
   var outputStream = ssh.outputStream()
@@ -94,7 +95,7 @@ proc exit*(ssh: Process) =
 
 
 when isMainModule:
-  var ssh = newSSH("user", "localhost")
+  var ssh = newSSH("user", "localhost", "ssh", "shellmon")
   echo ssh.runOutput("ls")
   echo ssh.runOutput("pwd")
   echo ssh.readFile("/p/guardmons/shellmon.nim")
