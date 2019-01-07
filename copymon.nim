@@ -12,6 +12,7 @@ var
   watching = newTable[string, int64]()
   address: string
 
+
 proc watchDirOrFile(pattern: string) =
   for fileName in walkPattern(pattern):
     if existsFile(fileName):
@@ -32,7 +33,6 @@ for kind, key, val in getopt():
 
 proc run(command: string) =
   discard execShellCmd(command)
-
 
 
 while true:
