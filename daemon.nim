@@ -1,3 +1,7 @@
+## Demonizes a process
+## Example:
+## daemon server
+
 import osproc, os, posix
 
 # grab full command line

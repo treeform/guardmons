@@ -1,3 +1,7 @@
+## Simply loops the command line, waiting 1 second in between
+## Example:
+## loopman myprogram
+
 import osproc, os
 
 var cmdLine = ""

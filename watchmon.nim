@@ -1,9 +1,7 @@
 # Simple utility that takes a file a command to watch and reruns it when any of the files there change.
+# Example:
+# watchmon --watch:"*.nim" --command:"nim c main.nim"
 
-# watchman - watches for changes and re runs commands
-# killman  - kills processes, prevents some from running
-# deman    - domonizes programs, makes sure that start on restart
-# cronman  - runs a commands at spesific times
 
 import os, osproc, streams, strutils, tables, times, parseopt2
 
