@@ -30,7 +30,6 @@ proc getCurrentProcessId*(): int =
     result = getpid()
 
 
-
 type ProcessEntry = object
   name: string
   path: string
@@ -81,16 +80,40 @@ when defined(windows):
               discard
         entries.add(entry)
 
+else:
+  let (data, code) = execCmdEx("ps aux")
+  var
+    i = 0
+    header: seq[string]
+  for line in data.split("\n"):
+    if i == 0:
+      header = line.splitWhitespace()
+    else:
+      var entry = ProcessEntry()
+      var j = 0
+      for value in line.splitWhitespace(header.len-1):
+        case header[j]:
+          of "PID": entry.pid = parseInt(value)
+          of "COMMAND":
+            entry.commandLine = value
+            entry.path = entry.commandLine.split(" ")[0]
+            entry.name = entry.path.split("/")[^1]
+          else: discard
+        inc j
+      entries.add(entry)
+    inc i
+
 
 entries.sort proc(a,b: ProcessEntry): int = cmp(a.name, b.name)
 
-var
-  patterns: seq[string]
-  killPid = -2
-  color = true
+
 const
   KILL_NONE = -2
   KILL_ALL = -1
+var
+  patterns: seq[string]
+  killPid = KILL_NONE
+  color = true
 
 
 for kind, key, value in getopt():
@@ -115,14 +138,17 @@ for entry in entries:
   if patterns.len > 0:
     var match = false
     for pattern in patterns:
-      if pattern in outline:
+      if pattern.toLowerAscii() in outline.toLowerAscii():
         match = true
         break
     if match:
       if killPid == n or killPid == KILL_ALL:
         outline[5] = 'K'
         when defined(windows):
-         let (data, code) = execCmdEx("taskkill /F /PID " & $entry.pid)
+          let (data, code) = execCmdEx("taskkill /F /PID " & $entry.pid)
+        else:
+          echo "killing:", entry.pid
+          let (data, code) = execCmdEx("kill -9 " & $entry.pid)
       echo outline
       inc n
   else:
