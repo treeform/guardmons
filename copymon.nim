@@ -26,6 +26,7 @@ for kind, key, val in getopt():
 
 
 proc run(command: string) =
+  echo command
   discard execShellCmd(command)
 
 
@@ -40,7 +41,7 @@ while true:
         else:
           echo "* changed ", fileName
         fileTime = lastWriteTime
-        let command = &"scp {fileName} {address}/{fileName} &"
+        let command = &"scp {fileName} {address}/{fileName}"
         run(command)
 
   sleep(100)

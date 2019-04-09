@@ -19,7 +19,10 @@ proc runOutputCode*(ssh: Process, command: string): (string, int) =
 
   result[1] = int outputStream.readUint64()
   let outputLen = int outputStream.readUint64()
-  assert outputLen < 100000
+  if outputLen > 100000:
+    echo "some thing is wrong with shellmon, invalid output:"
+    echo outputStream.readStr(80)
+    quit(1)
   result[0] = outputStream.readStr(outputLen)
 
 proc runOutput*(ssh: Process, command: string): string =
