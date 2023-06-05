@@ -2,7 +2,7 @@
 ## Example:
 ## daemon server
 
-import osproc, os, posix
+import osproc, os, posix, io
 
 # grab full command line
 var cmdLine = ""
@@ -33,9 +33,9 @@ setCurrentDir("/")
 posix.signal(SIGCHLD, SIG_IGN)
 
 # close handles
-stdout.close()
-stdin.close()
-stderr.close()
+stdout.reopen("/dev/null", fmWrite)
+stderr.reopen("/dev/null", fmWrite)
+stdin.reopen("/dev/null", fmRead)
 
 while true:
   discard execCmd(cmdLine)
