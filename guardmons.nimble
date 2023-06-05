@@ -1,6 +1,6 @@
 version     = "1.0.0"
 author      = "Andre von Houck"
-description = "A set of linux utilities written in Nim."
+description = "Cross-platform collection of OS Utilities"
 license     = "MIT"
 
 srcDir = "src"
