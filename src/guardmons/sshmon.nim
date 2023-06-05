@@ -1,4 +1,4 @@
-import osproc, streams, strutils, strutils, os
+import os, osproc, streams, strutils
 
 proc newSSH*(user, host, sshPath, shellMonPath, sshKey: string): Process =
   assert existsFile(sshKey)
@@ -54,7 +54,6 @@ proc readFileCode*(ssh: Process, path: string): (string, int) =
   let outputLen = int outputStream.readUint64()
   result[0] = outputStream.readStr(outputLen)
 
-
 proc writeFileCode*(ssh: Process, path: string, data: string): int =
   var inputStream = ssh.inputStream()
   var outputStream = ssh.outputStream()
@@ -71,31 +70,25 @@ proc writeFileCode*(ssh: Process, path: string, data: string): int =
 
   return int outputStream.readUint64()
 
-
 proc readFile*(ssh: Process, path: string): string =
   let (output, code) = ssh.readFileCode(path)
   if code != 0:
     raise newException(ValueError, "Non zero code returned: " & $code)
   return output
 
-
 proc writeFile*(ssh: Process, path: string, data: string) =
   let code = ssh.writeFileCode(path, data)
   if code != 0:
-    raise newException(ValueError, "Non zero code returned: " & $code)
-
+    raise newException(ValueError, "Non zero code returned: " & $code & " for " & path)
 
 proc copyFileTo*(ssh: Process, local, remote: string) =
   ssh.writeFile(remote, readFile(local))
 
-
 proc copyFileFrom*(ssh: Process, remote, local: string) =
   writeFile(local, ssh.readFile(remote))
 
-
 proc exit*(ssh: Process) =
   ssh.run("$$$exit")
-
 
 when isMainModule:
   var ssh = newSSH("user", "localhost", "ssh", "shellmon")
