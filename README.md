@@ -29,3 +29,9 @@ This collection includes numerous utilities to manage various OS operations. The
 * `usemem` - Gradually consumes all available memory. This is particularly useful for simulating low memory conditions for testing purposes.
 
 * `useupcpu` - Uses up one CPU core, which is useful for simulating situations where CPU resources are scarce for testing purposes.
+
+These utilities are tools that make handling different tasks on a computer system easier. They simplify and automate jobs like watching files, managing resources, and controlling processes, among others. Each tool has a specific job, which helps to manage the system in a detailed and adaptable way.
+
+These tools are often useful in both development and production settings. They're needed when tasks need to be automated, resources monitored, and processes controlled. Tools like `watchmon`, `copymon`, `logmon`, and `killmon` are very helpful for keeping the system stable and safe, by quickly reacting to changes and possible issues. Tools like `usemem` and `usecpu` can help simulate failure cases.
+
+These tools are cross-platform, which means they can work on both Linux, Windows, macOS. Cross-platform tools ensure that scripts and processes made on one system can also be used on another. This makes the code more portable and cuts down the time and effort needed to write and keep up separate scripts for each system.
